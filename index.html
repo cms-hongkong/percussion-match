@@ -423,14 +423,22 @@
             display: none;
         }
         
-        /* 圖片加載指示器 */
-        .image-loading {
-            background: #f5f5f5;
+        /* 測試按鈕 */
+        .test-buttons {
             display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 14px;
-            color: #666;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .test-btn {
+            padding: 5px 10px;
+            background: #9C27B0;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            font-size: 12px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -453,9 +461,11 @@
                 <li>答對後點擊「下一題」繼續遊戲</li>
                 <li>你也可以點擊其他樂器按鈕聆聽不同聲音</li>
             </ol>
-            <p style="margin-top: 10px; color: #666; font-size: 14px;">
-                提示：每個聲音按鈕可以重複播放，圖片可以點擊選擇
-            </p>
+            <div class="test-buttons">
+                <button class="test-btn" onclick="testAllAudios()">測試所有音頻</button>
+                <button class="test-btn" onclick="testAllImages()">測試所有圖片</button>
+                <button class="test-btn" onclick="showFileList()">顯示檔案列表</button>
+            </div>
         </div>
         
         <!-- 遊戲區域 -->
@@ -499,6 +509,9 @@
                 </p>
                 <div class="images-grid" id="imagesGrid">
                     <!-- 圖片會在這裡動態生成 -->
+                </div>
+                <div id="imageError" class="error-message" style="margin-top: 15px;">
+                    ❌ 部分圖片加載失敗
                 </div>
             </div>
         </div>
@@ -546,7 +559,7 @@
     </div>
 
     <script>
-        // 樂器資料（修正中文名）
+        // 樂器資料（已將 tamboutine 改為 tam）
         const instruments = [
             {
                 id: 'triangle',
@@ -591,10 +604,10 @@
                 description: '小軍鼓（小鼓）是鼓面下有響弦的鼓，聲音短促清脆有穿透力。'
             },
             {
-                id: 'tamboutine',
+                id: 'tam',  // 改為 tam
                 name: '搖鼓',
-                audioFile: 'tamboutine.mp3',
-                imageFile: 'tamboutine.jpg',
+                audioFile: 'tam.mp3',      // 改為 tam.mp3
+                imageFile: 'tam.jpg',       // 改為 tam.jpg
                 description: '鈴鼓（搖鼓）是帶有鈴片的框鼓，可敲擊或搖晃發出聲音。'
             }
         ];
@@ -631,8 +644,11 @@
         const gameStatus = document.getElementById('gameStatus');
         const currentSoundNumber = document.getElementById('currentSoundNumber');
         const audioError = document.getElementById('audioError');
+        const imageError = document.getElementById('imageError');
 
         let currentAudio = null;
+        let loadedImages = {};
+        let loadedAudios = {};
 
         // 初始化遊戲
         function initGame() {
@@ -658,9 +674,10 @@
             // 清空選擇
             clearSelections();
             
-            // 隱藏結果
+            // 隱藏錯誤訊息
             resultSection.classList.remove('show');
             audioError.style.display = 'none';
+            imageError.style.display = 'none';
             
             // 禁用按鈕
             checkBtn.disabled = true;
@@ -672,15 +689,19 @@
             // 創建其他聲音按鈕
             createOtherButtons();
             
+            // 預先測試所有檔案
+            testAllFiles();
+            
             // 隨機選擇一個聲音作為開始
             setTimeout(() => {
                 selectRandomSound();
-            }, 500);
+            }, 1000);
         }
 
-        // 創建圖片網格（修正圖片顯示問題）
+        // 創建圖片網格
         function createImageGrid() {
             imagesGrid.innerHTML = '';
+            loadedImages = {};
             
             // 隨機排序圖片
             const shuffledInstruments = [...instruments].sort(() => Math.random() - 0.5);
@@ -696,47 +717,47 @@
                 img.dataset.id = instrument.id;
                 img.dataset.name = instrument.name;
                 
-                // 設置圖片來源，添加錯誤處理
+                // 設置圖片來源
                 const imgUrl = instrument.imageFile;
                 img.src = imgUrl;
                 
                 // 圖片點擊事件
                 img.addEventListener('click', () => selectImage(instrument.id));
                 
-                // 圖片加載失敗處理 - 使用多種方法
+                // 圖片加載成功
+                img.onload = function() {
+                    loadedImages[instrument.id] = true;
+                    this.style.opacity = '1';
+                };
+                
+                // 圖片加載失敗處理
                 img.onerror = function() {
                     console.warn(`圖片加載失敗: ${imgUrl}`);
+                    loadedImages[instrument.id] = false;
                     
-                    // 方法1：嘗試不同的檔案擴展名
-                    const alternativeExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
-                    let triedExtensions = [imgUrl];
-                    
+                    // 嘗試不同的檔案擴展名
+                    const alternativeExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.jfif'];
                     const originalName = instrument.imageFile.split('.')[0];
+                    
                     let currentTry = 0;
                     
                     function tryNextExtension() {
                         if (currentTry < alternativeExtensions.length) {
                             const newUrl = originalName + alternativeExtensions[currentTry];
-                            console.log(`嘗試: ${newUrl}`);
+                            console.log(`嘗試替代圖片: ${newUrl}`);
                             img.src = newUrl;
-                            triedExtensions.push(newUrl);
                             currentTry++;
                         } else {
                             // 所有方法都失敗，顯示替代圖片
                             img.src = `https://via.placeholder.com/150x150/cccccc/ffffff?text=${encodeURIComponent(instrument.name)}`;
                             img.style.background = '#f5f5f5';
                             img.style.padding = '20px';
+                            showImageError();
                         }
                     }
                     
-                    // 設置新的錯誤處理器
                     img.onerror = tryNextExtension;
                     tryNextExtension();
-                };
-                
-                // 圖片加載成功
-                img.onload = function() {
-                    this.style.opacity = '1';
                 };
                 
                 const nameSpan = document.createElement('div');
@@ -763,12 +784,23 @@
                 button.textContent = instrument.name;
                 
                 button.addEventListener('click', () => {
-                    // 播放聲音但不設為當前題目
                     playSound(instrument.id, false);
                 });
                 
                 otherButtons.appendChild(button);
             });
+        }
+
+        // 顯示圖片錯誤
+        function showImageError() {
+            const failedImages = Object.keys(loadedImages).filter(id => !loadedImages[id]);
+            if (failedImages.length > 0) {
+                const failedNames = failedImages.map(id => 
+                    instruments.find(inst => inst.id === id)?.name || id
+                );
+                imageError.textContent = `❌ 圖片加載失敗：${failedNames.join('、')}`;
+                imageError.style.display = 'block';
+            }
         }
 
         // 隨機選擇一個聲音作為當前題目
@@ -848,6 +880,7 @@
                 if (isCurrentQuestion) {
                     gameStatus.textContent = `正在播放聲音...`;
                 }
+                loadedAudios[instrumentId] = true;
             });
             
             currentAudio.addEventListener('ended', () => {
@@ -873,19 +906,20 @@
                 console.error(`音頻加載失敗: ${instrument.audioFile}`, e);
                 playCurrentBtn.classList.remove('playing');
                 playCurrentBtn.innerHTML = '▶️ 播放當前聲音';
+                loadedAudios[instrumentId] = false;
                 
                 // 顯示錯誤訊息
-                audioError.textContent = `❌ ${instrument.name} 音頻加載失敗，請檢查檔案 ${instrument.audioFile} 是否存在`;
+                audioError.textContent = `❌ ${instrument.name} 音頻加載失敗，請檢查 ${instrument.audioFile} 檔案`;
                 audioError.style.display = 'block';
                 
                 if (isCurrentQuestion) {
                     gameStatus.textContent = `❌ 音頻加載失敗，請選擇其他聲音`;
                 }
                 
-                // 如果是tamboutine.mp3問題，提供解決方案
-                if (instrumentId === 'tamboutine') {
-                    audioError.innerHTML += `<br><small>提示：請檢查檔案名是否為 tamboutine.mp3，或嘗試重新上傳檔案</small>`;
-                }
+                // 提供詳細錯誤資訊
+                const errorCode = currentAudio.error ? currentAudio.error.code : '未知';
+                const errorMessage = currentAudio.error ? currentAudio.error.message : '請檢查檔案是否存在';
+                console.log(`音頻錯誤代碼: ${errorCode}, 訊息: ${errorMessage}`);
             });
             
             // 播放聲音
@@ -893,6 +927,7 @@
                 console.error('播放失敗:', error);
                 playCurrentBtn.classList.remove('playing');
                 playCurrentBtn.innerHTML = '▶️ 播放當前聲音';
+                loadedAudios[instrumentId] = false;
                 
                 if (isCurrentQuestion) {
                     gameStatus.textContent = '❌ 播放失敗，請點擊重試';
@@ -1107,6 +1142,108 @@
             
             // 禁用按鈕
             nextBtn.disabled = true;
+        }
+
+        // 測試所有音頻檔案
+        function testAllAudios() {
+            gameStatus.textContent = '正在測試所有音頻檔案...';
+            audioError.style.display = 'none';
+            
+            let testResults = [];
+            let completedTests = 0;
+            
+            instruments.forEach((instrument, index) => {
+                setTimeout(() => {
+                    const audio = new Audio(instrument.audioFile);
+                    
+                    audio.addEventListener('canplay', () => {
+                        testResults.push(`✅ ${instrument.name} (${instrument.audioFile}) - 可以播放`);
+                        completedTests++;
+                        checkAllTestsComplete(testResults, completedTests);
+                    });
+                    
+                    audio.addEventListener('error', () => {
+                        testResults.push(`❌ ${instrument.name} (${instrument.audioFile}) - 加載失敗`);
+                        completedTests++;
+                        checkAllTestsComplete(testResults, completedTests);
+                    });
+                    
+                    // 嘗試加載
+                    audio.load();
+                }, index * 500); // 每隔0.5秒測試一個
+            });
+            
+            function checkAllTestsComplete(results, completed) {
+                if (completed === instruments.length) {
+                    const successCount = results.filter(r => r.includes('✅')).length;
+                    const message = `音頻測試完成：${successCount}/${instruments.length} 成功\n\n${results.join('\n')}`;
+                    alert(message);
+                    gameStatus.textContent = `音頻測試：${successCount}/${instruments.length} 成功`;
+                }
+            }
+        }
+
+        // 測試所有圖片檔案
+        function testAllImages() {
+            gameStatus.textContent = '正在測試所有圖片檔案...';
+            imageError.style.display = 'none';
+            
+            let testResults = [];
+            let completedTests = 0;
+            
+            instruments.forEach((instrument, index) => {
+                setTimeout(() => {
+                    const img = new Image();
+                    
+                    img.onload = function() {
+                        testResults.push(`✅ ${instrument.name} (${instrument.imageFile}) - 加載成功`);
+                        completedTests++;
+                        checkAllTestsComplete(testResults, completedTests);
+                    };
+                    
+                    img.onerror = function() {
+                        testResults.push(`❌ ${instrument.name} (${instrument.imageFile}) - 加載失敗`);
+                        completedTests++;
+                        checkAllTestsComplete(testResults, completedTests);
+                    };
+                    
+                    img.src = instrument.imageFile;
+                }, index * 500);
+            });
+            
+            function checkAllTestsComplete(results, completed) {
+                if (completed === instruments.length) {
+                    const successCount = results.filter(r => r.includes('✅')).length;
+                    const message = `圖片測試完成：${successCount}/${instruments.length} 成功\n\n${results.join('\n')}`;
+                    alert(message);
+                    gameStatus.textContent = `圖片測試：${successCount}/${instruments.length} 成功`;
+                }
+            }
+        }
+
+        // 顯示檔案列表
+        function showFileList() {
+            const requiredFiles = [];
+            
+            // 音頻檔案
+            instruments.forEach(inst => {
+                requiredFiles.push(`音頻：${inst.audioFile} (${inst.name})`);
+            });
+            
+            // 圖片檔案
+            instruments.forEach(inst => {
+                requiredFiles.push(`圖片：${inst.imageFile} (${inst.name})`);
+            });
+            
+            alert(`需要的檔案列表（共 ${requiredFiles.length} 個）：\n\n${requiredFiles.join('\n')}\n\n請確保所有檔案都已上傳到 GitHub。`);
+        }
+
+        // 測試所有檔案
+        function testAllFiles() {
+            // 先測試圖片
+            setTimeout(testAllImages, 1000);
+            // 再測試音頻
+            setTimeout(testAllAudios, 2000);
         }
 
         // 事件監聽
