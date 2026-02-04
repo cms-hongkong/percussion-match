@@ -105,22 +105,26 @@
         .instrument-image {
             width: 100%;
             height: 150px;
-            object-fit: cover;
-            border-radius: 10px;
+            object-fit: contain;
             cursor: pointer;
             border: 4px solid transparent;
             transition: all 0.3s ease;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
         }
         
         .instrument-image:hover {
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            border-color: #1a2980;
         }
         
         .instrument-image.selected {
             border-color: #4CAF50;
             transform: scale(1.05);
+            background: #f0fff0;
         }
         
         .image-name {
@@ -148,18 +152,33 @@
             gap: 10px;
         }
         
-        .audio-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        .sound-player {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .sound-title {
+            font-size: 20px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .audio-controls {
+            display: flex;
+            justify-content: center;
             gap: 15px;
-            margin-top: 20px;
+            flex-wrap: wrap;
         }
         
         .audio-btn {
             background: #fff;
             border: 2px solid #ddd;
             border-radius: 50px;
-            padding: 15px;
+            padding: 15px 30px;
             font-size: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -169,6 +188,7 @@
             gap: 10px;
             font-weight: bold;
             color: #333;
+            min-width: 160px;
         }
         
         .audio-btn:hover {
@@ -177,16 +197,41 @@
             transform: translateY(-3px);
         }
         
-        .audio-btn.selected {
-            background: #4CAF50;
-            color: white;
-            border-color: #4CAF50;
-        }
-        
         .audio-btn.playing {
             background: #2196F3;
             color: white;
             border-color: #2196F3;
+        }
+        
+        /* 其他聲音按鈕 */
+        .other-sounds {
+            margin-top: 30px;
+        }
+        
+        .other-sounds h3 {
+            color: #666;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .other-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        
+        .other-btn {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+        
+        .other-btn:hover {
+            background: #e0e0e0;
         }
         
         /* 控制按鈕 */
@@ -348,42 +393,44 @@
                 padding: 12px 25px;
             }
             
-            .audio-buttons {
-                grid-template-columns: 1fr;
+            .audio-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .audio-btn {
+                width: 100%;
+                max-width: 300px;
             }
             
             .instrument-image {
                 height: 120px;
             }
+            
+            .images-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
         
-        /* 工具提示 */
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: #333;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
+        /* 錯誤訊息 */
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
             padding: 10px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            transition: opacity 0.3s;
+            border-radius: 5px;
+            margin: 10px 0;
             font-size: 14px;
+            display: none;
         }
         
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
+        /* 圖片加載指示器 */
+        .image-loading {
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            color: #666;
         }
     </style>
 </head>
@@ -400,19 +447,50 @@
             <h3>📋 遊戲說明</h3>
             <p><strong>玩法：</strong></p>
             <ol>
-                <li>點擊右邊的「播放聲音」按鈕聆聽樂器聲音</li>
-                <li>在左邊的圖片中選擇你認為正確的樂器</li>
+                <li>點擊「播放當前聲音」按鈕聆聽樂器聲音</li>
+                <li>在下面的圖片中選擇你認為正確的樂器</li>
                 <li>點擊「檢查答案」查看是否正確</li>
                 <li>答對後點擊「下一題」繼續遊戲</li>
-                <li>完成所有配對後查看你的分數！</li>
+                <li>你也可以點擊其他樂器按鈕聆聽不同聲音</li>
             </ol>
             <p style="margin-top: 10px; color: #666; font-size: 14px;">
-                提示：每個聲音按鈕可以重複播放，圖片可以點擊放大查看
+                提示：每個聲音按鈕可以重複播放，圖片可以點擊選擇
             </p>
         </div>
         
         <!-- 遊戲區域 -->
         <div class="game-area">
+            <!-- 音頻區域 -->
+            <div class="audio-section">
+                <h2>🔊 樂器聲音</h2>
+                
+                <div class="sound-player">
+                    <div class="sound-title" id="soundTitle">
+                        當前聲音：<span id="currentSoundNumber">第 1 題</span>
+                    </div>
+                    
+                    <div class="audio-controls">
+                        <button class="audio-btn" id="playCurrentBtn">
+                            ▶️ 播放當前聲音
+                        </button>
+                        <button class="audio-btn" id="playRandomBtn">
+                            🎲 隨機播放聲音
+                        </button>
+                    </div>
+                    
+                    <div id="audioError" class="error-message">
+                        ❌ 音頻加載失敗，請檢查檔案是否存在
+                    </div>
+                </div>
+                
+                <div class="other-sounds">
+                    <h3>其他樂器聲音：</h3>
+                    <div class="other-buttons" id="otherButtons">
+                        <!-- 其他樂器按鈕會在這裡動態生成 -->
+                    </div>
+                </div>
+            </div>
+            
             <!-- 圖片區域 -->
             <div class="images-section">
                 <h2>🎻 樂器圖片</h2>
@@ -421,17 +499,6 @@
                 </p>
                 <div class="images-grid" id="imagesGrid">
                     <!-- 圖片會在這裡動態生成 -->
-                </div>
-            </div>
-            
-            <!-- 音頻區域 -->
-            <div class="audio-section">
-                <h2>🔊 樂器聲音</h2>
-                <p style="text-align: center; color: #666; margin-bottom: 15px;">
-                    點擊播放按鈕聆聽聲音：
-                </p>
-                <div class="audio-buttons" id="audioButtons">
-                    <!-- 音頻按鈕會在這裡動態生成 -->
                 </div>
             </div>
         </div>
@@ -473,62 +540,62 @@
         <footer>
             <p>樂器配對遊戲 | 7種樂器聲音與圖片配對 | 適合音樂教育使用</p>
             <p style="font-size: 14px; margin-top: 10px; opacity: 0.8;">
-                樂器：三角鐵、響板、鈸、沙錘、雪鈴、小軍鼓、鈴鼓
+                樂器：三角、雙擊木、銅鈸、砂槌、馬鈴、小鼓、搖鼓
             </p>
         </footer>
     </div>
 
     <script>
-        // 樂器資料
+        // 樂器資料（修正中文名）
         const instruments = [
             {
                 id: 'triangle',
-                name: '三角鐵',
+                name: '三角',
                 audioFile: 'triangle.mp3',
                 imageFile: 'triangle.jpg',
                 description: '三角鐵是一種金屬打擊樂器，由一根鋼條折成三角形製成，聲音清脆明亮。'
             },
             {
                 id: 'claves',
-                name: '響板',
+                name: '雙擊木',
                 audioFile: 'claves.mp3',
                 imageFile: 'claves.jpg',
-                description: '響板是兩根硬木棒互擊發聲的打擊樂器，常用於拉丁音樂節奏。'
+                description: '響板（雙擊木）是兩根硬木棒互擊發聲的打擊樂器，常用於拉丁音樂節奏。'
             },
             {
                 id: 'cymbal',
-                name: '鈸',
+                name: '銅鈸',
                 audioFile: 'cymbal.mp3',
                 imageFile: 'cymbal.jpg',
-                description: '鈸是兩片金屬圓盤碰撞發聲的打擊樂器，聲音響亮持久。'
+                description: '鈸（銅鈸）是兩片金屬圓盤碰撞發聲的打擊樂器，聲音響亮持久。'
             },
             {
                 id: 'maracas',
-                name: '沙錘',
+                name: '砂槌',
                 audioFile: 'maracas.mp3',
                 imageFile: 'maracas.jpg',
-                description: '沙錘是搖奏打擊樂器，內裝珠子或種子，搖晃時發出沙沙聲。'
+                description: '沙錘（砂槌）是搖奏打擊樂器，內裝珠子或種子，搖晃時發出沙沙聲。'
             },
             {
                 id: 'sleigh_bells',
-                name: '雪鈴',
+                name: '馬鈴',
                 audioFile: 'sleigh_bells.mp3',
                 imageFile: 'sleigh_bells.jpg',
-                description: '雪鈴是一串小鈴鐺組成的打擊樂器，聲音清脆如聖誕鈴聲。'
+                description: '雪鈴（馬鈴）是一串小鈴鐺組成的打擊樂器，聲音清脆如鈴鐺聲。'
             },
             {
                 id: 'snare_drum',
-                name: '小軍鼓',
+                name: '小鼓',
                 audioFile: 'snare_drum.mp3',
                 imageFile: 'snare_drum.jpg',
-                description: '小軍鼓是鼓面下有響弦的鼓，聲音短促清脆有穿透力。'
+                description: '小軍鼓（小鼓）是鼓面下有響弦的鼓，聲音短促清脆有穿透力。'
             },
             {
                 id: 'tamboutine',
-                name: '鈴鼓',
+                name: '搖鼓',
                 audioFile: 'tamboutine.mp3',
                 imageFile: 'tamboutine.jpg',
-                description: '鈴鼓是帶有鈴片的框鼓，可敲擊或搖晃發出聲音。'
+                description: '鈴鼓（搖鼓）是帶有鈴片的框鼓，可敲擊或搖晃發出聲音。'
             }
         ];
 
@@ -540,13 +607,16 @@
             totalQuestions: instruments.length,
             answeredQuestions: 0,
             currentRound: 0,
-            soundsPlayed: 0,
-            gameInProgress: true
+            gameInProgress: true,
+            availableInstruments: [...instruments],
+            usedSounds: []
         };
 
         // DOM 元素
         const imagesGrid = document.getElementById('imagesGrid');
-        const audioButtons = document.getElementById('audioButtons');
+        const playCurrentBtn = document.getElementById('playCurrentBtn');
+        const playRandomBtn = document.getElementById('playRandomBtn');
+        const otherButtons = document.getElementById('otherButtons');
         const checkBtn = document.getElementById('checkBtn');
         const resetBtn = document.getElementById('resetBtn');
         const nextBtn = document.getElementById('nextBtn');
@@ -559,6 +629,8 @@
         const totalElement = document.getElementById('total');
         const progressFill = document.getElementById('progressFill');
         const gameStatus = document.getElementById('gameStatus');
+        const currentSoundNumber = document.getElementById('currentSoundNumber');
+        const audioError = document.getElementById('audioError');
 
         let currentAudio = null;
 
@@ -572,20 +644,23 @@
                 totalQuestions: instruments.length,
                 answeredQuestions: 0,
                 currentRound: 0,
-                soundsPlayed: 0,
-                gameInProgress: true
+                gameInProgress: true,
+                availableInstruments: [...instruments],
+                usedSounds: []
             };
 
             // 更新顯示
             updateScore();
             updateProgress();
             gameStatus.textContent = '準備開始遊戲...';
+            currentSoundNumber.textContent = '第 1 題';
             
             // 清空選擇
             clearSelections();
             
             // 隱藏結果
             resultSection.classList.remove('show');
+            audioError.style.display = 'none';
             
             // 禁用按鈕
             checkBtn.disabled = true;
@@ -594,16 +669,16 @@
             // 創建圖片網格
             createImageGrid();
             
-            // 創建音頻按鈕
-            createAudioButtons();
+            // 創建其他聲音按鈕
+            createOtherButtons();
             
-            // 隨機播放一個聲音作為開始
+            // 隨機選擇一個聲音作為開始
             setTimeout(() => {
-                playRandomSound();
-            }, 1000);
+                selectRandomSound();
+            }, 500);
         }
 
-        // 創建圖片網格
+        // 創建圖片網格（修正圖片顯示問題）
         function createImageGrid() {
             imagesGrid.innerHTML = '';
             
@@ -616,18 +691,52 @@
                 
                 const img = document.createElement('img');
                 img.className = 'instrument-image';
-                img.src = instrument.imageFile;
                 img.alt = instrument.name;
+                img.title = instrument.name;
                 img.dataset.id = instrument.id;
                 img.dataset.name = instrument.name;
+                
+                // 設置圖片來源，添加錯誤處理
+                const imgUrl = instrument.imageFile;
+                img.src = imgUrl;
                 
                 // 圖片點擊事件
                 img.addEventListener('click', () => selectImage(instrument.id));
                 
-                // 圖片加載失敗處理
+                // 圖片加載失敗處理 - 使用多種方法
                 img.onerror = function() {
-                    this.src = 'https://via.placeholder.com/150x150?text=' + encodeURIComponent(instrument.name);
-                    console.warn(`圖片加載失敗: ${instrument.imageFile}`);
+                    console.warn(`圖片加載失敗: ${imgUrl}`);
+                    
+                    // 方法1：嘗試不同的檔案擴展名
+                    const alternativeExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+                    let triedExtensions = [imgUrl];
+                    
+                    const originalName = instrument.imageFile.split('.')[0];
+                    let currentTry = 0;
+                    
+                    function tryNextExtension() {
+                        if (currentTry < alternativeExtensions.length) {
+                            const newUrl = originalName + alternativeExtensions[currentTry];
+                            console.log(`嘗試: ${newUrl}`);
+                            img.src = newUrl;
+                            triedExtensions.push(newUrl);
+                            currentTry++;
+                        } else {
+                            // 所有方法都失敗，顯示替代圖片
+                            img.src = `https://via.placeholder.com/150x150/cccccc/ffffff?text=${encodeURIComponent(instrument.name)}`;
+                            img.style.background = '#f5f5f5';
+                            img.style.padding = '20px';
+                        }
+                    }
+                    
+                    // 設置新的錯誤處理器
+                    img.onerror = tryNextExtension;
+                    tryNextExtension();
+                };
+                
+                // 圖片加載成功
+                img.onload = function() {
+                    this.style.opacity = '1';
                 };
                 
                 const nameSpan = document.createElement('div');
@@ -640,35 +749,71 @@
             });
         }
 
-        // 創建音頻按鈕
-        function createAudioButtons() {
-            audioButtons.innerHTML = '';
+        // 創建其他聲音按鈕
+        function createOtherButtons() {
+            otherButtons.innerHTML = '';
             
-            // 隨機排序音頻
+            // 隨機排序
             const shuffledInstruments = [...instruments].sort(() => Math.random() - 0.5);
             
             shuffledInstruments.forEach(instrument => {
                 const button = document.createElement('button');
-                button.className = 'audio-btn';
+                button.className = 'other-btn';
                 button.dataset.id = instrument.id;
-                button.dataset.name = instrument.name;
-                button.innerHTML = `
-                    🔊 ${instrument.name}
-                    <span class="tooltip">
-                        ℹ️
-                        <span class="tooltiptext">${instrument.description}</span>
-                    </span>
-                `;
+                button.textContent = instrument.name;
                 
-                // 按鈕點擊事件
-                button.addEventListener('click', () => playSound(instrument.id));
+                button.addEventListener('click', () => {
+                    // 播放聲音但不設為當前題目
+                    playSound(instrument.id, false);
+                });
                 
-                audioButtons.appendChild(button);
+                otherButtons.appendChild(button);
             });
         }
 
+        // 隨機選擇一個聲音作為當前題目
+        function selectRandomSound() {
+            if (!gameState.gameInProgress) return;
+            
+            // 找出尚未使用的聲音
+            const availableSounds = gameState.availableInstruments.filter(instrument => 
+                !gameState.usedSounds.includes(instrument.id)
+            );
+            
+            if (availableSounds.length === 0) {
+                // 所有聲音都用過了，重新開始
+                gameState.availableInstruments = [...instruments];
+                gameState.usedSounds = [];
+                selectRandomSound();
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * availableSounds.length);
+            const selectedInstrument = availableSounds[randomIndex];
+            
+            // 設置當前聲音
+            gameState.currentSound = selectedInstrument.id;
+            gameState.usedSounds.push(selectedInstrument.id);
+            
+            // 更新顯示
+            currentSoundNumber.textContent = `第 ${gameState.usedSounds.length} 題`;
+            gameStatus.textContent = `請聆聽聲音並選擇對應的樂器`;
+            
+            // 播放聲音
+            playCurrentSound();
+            
+            // 啟用圖片選擇
+            enableImageSelection();
+        }
+
+        // 播放當前題目的聲音
+        function playCurrentSound() {
+            if (!gameState.currentSound) return;
+            playSound(gameState.currentSound, true);
+        }
+
         // 播放聲音
-        function playSound(instrumentId) {
+        function playSound(instrumentId, isCurrentQuestion = true) {
             // 停止當前播放的聲音
             if (currentAudio) {
                 currentAudio.pause();
@@ -676,7 +821,8 @@
             }
             
             // 移除所有播放狀態
-            document.querySelectorAll('.audio-btn').forEach(btn => {
+            playCurrentBtn.classList.remove('playing');
+            document.querySelectorAll('.other-btn').forEach(btn => {
                 btn.classList.remove('playing');
             });
             
@@ -684,73 +830,87 @@
             const instrument = instruments.find(inst => inst.id === instrumentId);
             if (!instrument) return;
             
-            // 設置當前聲音
-            gameState.currentSound = instrumentId;
-            gameState.soundsPlayed++;
-            
             // 設置按鈕為播放狀態
-            const button = document.querySelector(`.audio-btn[data-id="${instrumentId}"]`);
-            if (button) {
-                button.classList.add('playing');
+            if (isCurrentQuestion) {
+                playCurrentBtn.classList.add('playing');
+                playCurrentBtn.innerHTML = '⏸️ 播放中...';
+            } else {
+                const button = document.querySelector(`.other-btn[data-id="${instrumentId}"]`);
+                if (button) {
+                    button.classList.add('playing');
+                }
             }
             
             // 創建並播放音頻
             currentAudio = new Audio(instrument.audioFile);
             
             currentAudio.addEventListener('play', () => {
-                gameStatus.textContent = `正在播放：${instrument.name}`;
+                if (isCurrentQuestion) {
+                    gameStatus.textContent = `正在播放聲音...`;
+                }
             });
             
             currentAudio.addEventListener('ended', () => {
-                button.classList.remove('playing');
-                gameStatus.textContent = `請選擇對應的樂器圖片`;
+                playCurrentBtn.classList.remove('playing');
+                playCurrentBtn.innerHTML = '▶️ 播放當前聲音';
                 
-                // 啟用檢查按鈕
-                if (gameState.selectedImage) {
+                if (isCurrentQuestion) {
+                    gameStatus.textContent = `請選擇對應的樂器圖片`;
+                }
+                
+                // 移除其他按鈕的播放狀態
+                document.querySelectorAll('.other-btn').forEach(btn => {
+                    btn.classList.remove('playing');
+                });
+                
+                // 啟用檢查按鈕（如果是當前題目且有選擇圖片）
+                if (isCurrentQuestion && gameState.selectedImage) {
                     checkBtn.disabled = false;
                 }
             });
             
             currentAudio.addEventListener('error', (e) => {
                 console.error(`音頻加載失敗: ${instrument.audioFile}`, e);
-                button.classList.remove('playing');
-                gameStatus.textContent = `❌ 音頻加載失敗：${instrument.name}`;
+                playCurrentBtn.classList.remove('playing');
+                playCurrentBtn.innerHTML = '▶️ 播放當前聲音';
                 
-                // 使用替代提示
-                alert(`無法播放 ${instrument.name} 的聲音，請確保檔案 ${instrument.audioFile} 已正確上傳。`);
+                // 顯示錯誤訊息
+                audioError.textContent = `❌ ${instrument.name} 音頻加載失敗，請檢查檔案 ${instrument.audioFile} 是否存在`;
+                audioError.style.display = 'block';
+                
+                if (isCurrentQuestion) {
+                    gameStatus.textContent = `❌ 音頻加載失敗，請選擇其他聲音`;
+                }
+                
+                // 如果是tamboutine.mp3問題，提供解決方案
+                if (instrumentId === 'tamboutine') {
+                    audioError.innerHTML += `<br><small>提示：請檢查檔案名是否為 tamboutine.mp3，或嘗試重新上傳檔案</small>`;
+                }
             });
             
             // 播放聲音
             currentAudio.play().catch(error => {
                 console.error('播放失敗:', error);
-                button.classList.remove('playing');
-                gameStatus.textContent = '❌ 播放失敗，請點擊重試';
+                playCurrentBtn.classList.remove('playing');
+                playCurrentBtn.innerHTML = '▶️ 播放當前聲音';
+                
+                if (isCurrentQuestion) {
+                    gameStatus.textContent = '❌ 播放失敗，請點擊重試';
+                }
             });
-            
-            // 啟用圖片選擇
-            enableImageSelection();
         }
 
-        // 隨機播放一個聲音
+        // 隨機播放一個聲音（不作為題目）
         function playRandomSound() {
-            if (!gameState.gameInProgress) return;
-            
-            // 找出尚未播放的聲音
-            const availableInstruments = instruments.filter(instrument => 
-                !gameState.answeredQuestions || 
-                instrument.id !== gameState.currentSound
-            );
-            
-            if (availableInstruments.length === 0) return;
-            
-            const randomInstrument = availableInstruments[Math.floor(Math.random() * availableInstruments.length)];
-            playSound(randomInstrument.id);
+            const randomInstrument = instruments[Math.floor(Math.random() * instruments.length)];
+            playSound(randomInstrument.id, false);
+            gameStatus.textContent = `正在播放：${randomInstrument.name}（練習模式）`;
         }
 
         // 選擇圖片
         function selectImage(instrumentId) {
             if (!gameState.currentSound) {
-                alert('請先播放一個聲音！');
+                alert('請先播放當前題目的聲音！');
                 return;
             }
             
@@ -770,7 +930,8 @@
             }
             
             gameState.selectedImage = instrumentId;
-            gameStatus.textContent = `已選擇：${selectedImg?.dataset.name || instrumentId}`;
+            const instrument = instruments.find(inst => inst.id === instrumentId);
+            gameStatus.textContent = `已選擇：${instrument ? instrument.name : instrumentId}`;
             
             // 啟用檢查按鈕
             checkBtn.disabled = false;
@@ -803,6 +964,11 @@
             if (isCorrect) {
                 gameState.score++;
                 gameState.answeredQuestions++;
+                
+                // 從可用列表中移除已答對的樂器
+                gameState.availableInstruments = gameState.availableInstruments.filter(
+                    inst => inst.id !== gameState.currentSound
+                );
             }
             
             // 更新顯示
@@ -844,18 +1010,8 @@
                     <button onclick="playSound('${instrument.id}')" style="padding: 8px 16px; background: #2196F3; color: white; border: none; border-radius: 5px; cursor: pointer;">
                         🔄 重新聆聽
                     </button>
-                    <button onclick="showAllMatches()" style="padding: 8px 16px; background: #9C27B0; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                        👁️ 查看所有配對
-                    </button>
                 </div>
             `;
-        }
-
-        // 顯示所有配對
-        function showAllMatches() {
-            alert('所有樂器配對：\n\n' + 
-                instruments.map(inst => `🔊 ${inst.name} → 🖼️ ${inst.name}`).join('\n')
-            );
         }
 
         // 下一題
@@ -870,20 +1026,19 @@
             checkBtn.disabled = true;
             nextBtn.disabled = true;
             
-            // 更新遊戲狀態
-            gameState.currentRound++;
+            // 重新排列圖片
+            createImageGrid();
             
-            // 隨機播放下一個聲音
+            // 隨機選擇下一個聲音
             if (gameState.gameInProgress) {
                 setTimeout(() => {
-                    playRandomSound();
+                    selectRandomSound();
                 }, 500);
             }
         }
 
         // 清空選擇
         function clearSelections() {
-            gameState.currentSound = null;
             gameState.selectedImage = null;
             
             // 移除所有選擇狀態
@@ -893,7 +1048,6 @@
             
             document.querySelectorAll('.audio-btn').forEach(btn => {
                 btn.classList.remove('playing');
-                btn.classList.remove('selected');
             });
             
             // 停止音頻
@@ -901,6 +1055,8 @@
                 currentAudio.pause();
                 currentAudio.currentTime = 0;
             }
+            
+            playCurrentBtn.innerHTML = '▶️ 播放當前聲音';
         }
 
         // 更新分數
@@ -957,10 +1113,12 @@
         checkBtn.addEventListener('click', checkAnswer);
         resetBtn.addEventListener('click', initGame);
         nextBtn.addEventListener('click', nextQuestion);
+        playCurrentBtn.addEventListener('click', playCurrentSound);
+        playRandomBtn.addEventListener('click', playRandomSound);
 
         // 鍵盤快捷鍵
         document.addEventListener('keydown', (e) => {
-            // 空格鍵播放/暫停
+            // 空格鍵播放/暫停當前聲音
             if (e.code === 'Space' && currentAudio) {
                 e.preventDefault();
                 if (currentAudio.paused) {
@@ -993,6 +1151,11 @@
             if (e.code === 'KeyR') {
                 resetBtn.click();
             }
+            
+            // P 鍵播放當前聲音
+            if (e.code === 'KeyP') {
+                playCurrentSound();
+            }
         });
 
         // 初始化遊戲
@@ -1002,7 +1165,7 @@
         setTimeout(() => {
             gameStatus.innerHTML = `
                 提示：可用鍵盤操作<br>
-                <small>數字鍵 1-7 選擇圖片 | 空格鍵 播放/暫停 | Enter 檢查答案 | N 下一題 | R 重新開始</small>
+                <small>數字鍵 1-7 選擇圖片 | 空格鍵 播放/暫停 | Enter 檢查答案 | N 下一題 | R 重新開始 | P 播放當前聲音</small>
             `;
         }, 3000);
     </script>
