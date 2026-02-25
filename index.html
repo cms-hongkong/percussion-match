@@ -7,12 +7,13 @@
     <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #fffaf0; /* 溫暖奶油色 */
-            --primary-pink: #ff9a9e; /* 粉嫩紅 */
-            --primary-blue: #a1c4fd; /* 夢幻藍 */
-            --correct-green: #81c784; /* 薄荷綠 */
-            --accent-orange: #ffb74d; /* 活力橘 */
-            --text-color: #5d4037; /* 巧克力深棕 */
+            --bg-color: #fffaf0;
+            --primary-pink: #ff9a9e;
+            --primary-blue: #a1c4fd;
+            --correct-green: #81c784;
+            --incorrect-red: #ff8a80;
+            --accent-orange: #ffb74d;
+            --text-color: #5d4037;
         }
 
         * {
@@ -25,10 +26,27 @@
         body {
             background-color: var(--bg-color);
             background-image: radial-gradient(#ffe082 1px, transparent 1px);
-            background-size: 30px 30px; /* 可愛圓點背景 */
+            background-size: 30px 30px;
             min-height: 100vh;
             padding: 20px;
             color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        /* 開始遊戲遮罩 */
+        #startOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
         }
 
         .container {
@@ -37,12 +55,11 @@
             background: white;
             border-radius: 40px;
             padding: 30px;
-            box-shadow: 0 15px 0px #f0d5a0; /* 3D 立體底座感 */
+            box-shadow: 0 15px 0px #f0d5a0;
             border: 5px solid var(--text-color);
             position: relative;
         }
 
-        /* 標題區域 */
         .header {
             text-align: center;
             margin-bottom: 30px;
@@ -67,44 +84,6 @@
             font-weight: bold;
         }
 
-        /* 遊戲說明 */
-        .instructions {
-            background: #f0f7ff;
-            border-radius: 25px;
-            padding: 20px;
-            margin-bottom: 30px;
-            border: 3px solid var(--primary-blue);
-        }
-
-        .instructions h3 {
-            color: #1a73e8;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .test-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .test-btn {
-            padding: 6px 12px;
-            background: #d1c4e9;
-            color: #512da8;
-            border: none;
-            border-radius: 10px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .test-btn:hover { background: #b39ddb; }
-
-        /* 遊戲區域佈局 */
         .game-area {
             display: grid;
             grid-template-columns: 1fr 1.2fr;
@@ -116,7 +95,6 @@
             .game-area { grid-template-columns: 1fr; }
         }
 
-        /* 音頻區域 */
         .audio-section {
             background: #fff9f0;
             border-radius: 30px;
@@ -125,8 +103,6 @@
             box-shadow: 8px 8px 0px var(--accent-orange);
         }
 
-        .audio-section h2 { text-align: center; margin-bottom: 15px; color: var(--accent-orange); }
-
         .sound-player {
             background: white;
             border-radius: 20px;
@@ -134,8 +110,6 @@
             text-align: center;
             border: 2px solid #eee;
         }
-
-        .sound-title { font-size: 20px; margin-bottom: 15px; }
 
         .audio-btn {
             background: var(--primary-pink);
@@ -153,23 +127,6 @@
         .audio-btn:active { transform: translateY(4px); box-shadow: 0 2px 0px #d47a7d; }
         .audio-btn.playing { background: var(--primary-blue); box-shadow: 0 6px 0px #7b9acc; }
 
-        .other-sounds h3 { font-size: 16px; margin: 20px 0 10px; color: #888; text-align: center; }
-
-        .other-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-
-        .other-btn {
-            background: #fff;
-            border: 2px solid #eee;
-            border-radius: 15px;
-            padding: 8px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: 0.2s;
-        }
-
-        .other-btn:hover { border-color: var(--primary-blue); background: #f0f7ff; }
-
-        /* 圖片區域 */
         .images-section {
             background: #fff;
             border-radius: 30px;
@@ -177,17 +134,18 @@
             border: 4px solid #eee;
         }
 
-        .images-section h2 { text-align: center; margin-bottom: 15px; color: var(--primary-blue); }
-
         .images-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
 
-        .image-container { text-align: center; }
+        .image-container { 
+            text-align: center; 
+            cursor: pointer; 
+            transition: transform 0.2s;
+        }
 
         .instrument-image {
             width: 100%;
             height: 120px;
             object-fit: contain;
-            cursor: pointer;
             border: 4px solid #f9f9f9;
             background: #fff;
             border-radius: 20px;
@@ -195,8 +153,9 @@
             padding: 10px;
         }
 
-        .instrument-image:hover { transform: scale(1.05) rotate(2deg); border-color: var(--primary-pink); }
-        .instrument-image.selected { border-color: var(--correct-green); background: #e8f5e green; transform: scale(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .image-container:hover { transform: scale(1.05); }
+        .image-container.correct .instrument-image { border-color: var(--correct-green); background: #e8f5e9; }
+        .image-container.wrong .instrument-image { border-color: var(--incorrect-red); background: #ffebee; }
 
         .image-name {
             display: inline-block;
@@ -208,38 +167,31 @@
             font-size: 14px;
         }
 
-        /* 下方控制按鈕 */
         .control-buttons {
             display: flex;
             justify-content: center;
             gap: 20px;
-            margin: 40px 0;
-            flex-wrap: wrap;
+            margin: 30px 0;
         }
 
         .control-btn {
-            padding: 18px 40px;
+            padding: 15px 40px;
             border: none;
             border-radius: 50px;
             font-size: 22px;
             color: white;
             cursor: pointer;
-            transition: all 0.2s;
             box-shadow: 0 8px 0px rgba(0,0,0,0.1);
+            transition: 0.2s;
         }
 
-        .check-btn { background: var(--correct-green); box-shadow: 0 8px 0px #66a669; }
         .reset-btn { background: var(--accent-orange); box-shadow: 0 8px 0px #e6a543; }
         .next-btn { background: var(--primary-blue); box-shadow: 0 8px 0px #8ba7d6; }
+        .control-btn:disabled { background: #ccc; box-shadow: 0 8px 0px #bbb; cursor: not-allowed; }
 
-        .control-btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.05); }
-        .control-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 2px 0px rgba(0,0,0,0.1); }
-        .control-btn:disabled { background: #ccc; box-shadow: 0 8px 0px #bbb; cursor: not-allowed; opacity: 0.7; }
-
-        /* 結果顯示區域 */
         .result-section {
             text-align: center;
-            margin: 30px 0;
+            margin: 20px 0;
             padding: 25px;
             border-radius: 30px;
             display: none;
@@ -247,317 +199,244 @@
         }
 
         @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
-
         .result-section.show { display: block; }
         .result-correct { background: #e8f5e9; border: 4px solid var(--correct-green); }
         .result-incorrect { background: #fff1f0; border: 4px solid var(--primary-pink); }
-
-        .result-icon { font-size: 60px; margin-bottom: 10px; animation: bounce 1s infinite; }
-
+        .result-icon { font-size: 60px; animation: bounce 1s infinite; }
         @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
 
-        /* 分數與進度 */
         .score-board {
             background: var(--text-color);
             color: white;
-            padding: 25px;
+            padding: 20px;
             border-radius: 35px;
             text-align: center;
         }
 
         .progress-bar {
-            height: 25px;
+            height: 20px;
             background: rgba(255,255,255,0.2);
             border-radius: 50px;
-            margin: 15px 0;
-            border: 3px solid white;
+            margin: 10px 0;
             overflow: hidden;
         }
 
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #ff9a9e, #fad0c4);
-            width: 0%;
-            transition: width 0.5s ease;
-        }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #ff9a9e, #fad0c4); width: 0%; transition: width 0.5s; }
 
-        footer {
-            text-align: center;
-            margin-top: 40px;
-            padding: 20px;
-            border-top: 2px dashed #ccc;
-            color: #888;
-            font-size: 14px;
-        }
+        .other-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .other-btn { background: #fff; border: 2px solid #eee; border-radius: 12px; padding: 6px; cursor: pointer; font-size: 12px; }
 
-        .error-message { color: #f44336; font-size: 14px; display: none; margin-top: 10px; }
+        footer { text-align: center; margin-top: 30px; padding: 20px; border-top: 2px dashed #ccc; color: #888; font-size: 12px; }
     </style>
 </head>
 <body>
+
+    <div id="startOverlay">
+        <h1 style="font-size: 50px; margin-bottom: 30px;">🎵 樂器小森林 🌲</h1>
+        <p style="font-size: 20px; margin-bottom: 40px; color: #888;">準備好聽聽大自然的音樂了嗎？</p>
+        <button class="control-btn" style="background: var(--correct-green); box-shadow: 0 10px 0 #66a669; font-size: 30px; padding: 20px 60px;" onclick="startGame()">開始挑戰！</button>
+    </div>
+
     <div class="container">
         <div class="header">
-            <h1>🎵 樂器小森林 🎵</h1>
-            <p class="subtitle">聽一聽聲音，哪一個是它的主人呢？</p>
-        </div>
-        
-        <div class="instructions">
-            <h3>📋 怎麼玩？</h3>
-            <p>1. 點擊粉紅色的「播放」按鈕聽聽樂器聲<br>
-               2. 在右邊點選你覺得正確的樂器圖片<br>
-               3. 點擊綠色的「檢查答案」！</p>
-            <div class="test-buttons">
-                <button class="test-btn" onclick="testAllAudios()">音頻測試</button>
-                <button class="test-btn" onclick="testAllImages()">圖片測試</button>
-                <button class="test-btn" onclick="showFileList()">檔案列表</button>
-            </div>
+            <h1>樂器聲音配對</h1>
+            <p class="subtitle">點擊圖片直接回答問題吧！</p>
         </div>
         
         <div class="game-area">
             <div class="audio-section">
-                <h2>🔊 聽聲音</h2>
                 <div class="sound-player">
-                    <div class="sound-title" id="soundTitle">
-                        當前挑戰：<span id="currentSoundNumber" style="color:var(--primary-pink)">第 1 題</span>
-                    </div>
-                    <div class="audio-controls">
-                        <button class="audio-btn" id="playCurrentBtn">▶️ 播放當前聲音</button>
-                        <button class="audio-btn" id="playRandomBtn" style="background:var(--primary-blue); box-shadow: 0 6px 0px #7b9acc;">🎲 隨機練習</button>
-                    </div>
-                    <div id="audioError" class="error-message">❌ 音頻加載失敗</div>
+                    <div class="sound-title">正在挑戰：<span id="currentSoundNumber" style="color:var(--primary-pink)">第 1 題</span></div>
+                    <button class="audio-btn" id="playCurrentBtn">▶️ 播放聲音</button>
+                    <div id="gameStatus" style="margin-top: 10px; font-size: 14px;">點擊右圖回答問題</div>
                 </div>
-                
                 <div class="other-sounds">
-                    <h3>🔍 聽聽看其他樂器：</h3>
+                    <p style="text-align:center; font-size:12px; color:#888; margin-top:15px;">🔍 聽聽看練習：</p>
                     <div class="other-buttons" id="otherButtons"></div>
                 </div>
             </div>
             
             <div class="images-section">
-                <h2>🎻 找樂器</h2>
                 <div class="images-grid" id="imagesGrid"></div>
-                <div id="imageError" class="error-message">❌ 部分圖片加載失敗</div>
             </div>
-        </div>
-        
-        <div class="control-buttons">
-            <button class="control-btn check-btn" id="checkBtn" disabled>✅ 檢查答案</button>
-            <button class="control-btn reset-btn" id="resetBtn">🔄 重新開始</button>
-            <button class="control-btn next-btn" id="nextBtn" disabled>⏭️ 下一題</button>
         </div>
         
         <div class="result-section" id="resultSection">
             <div class="result-icon" id="resultIcon">🎉</div>
             <h2 id="resultTitle">答案正確！</h2>
             <p id="resultText">你好棒！</p>
-            <div id="instrumentInfo" style="margin-top: 15px; font-size: 16px; line-height: 1.5;"></div>
+            <div id="instrumentInfo" style="margin-top: 10px;"></div>
+        </div>
+
+        <div class="control-buttons">
+            <button class="control-btn next-btn" id="nextBtn" disabled>⏭️ 下一題</button>
+            <button class="control-btn reset-btn" id="resetBtn">🔄 重新開始</button>
         </div>
         
         <div class="score-board">
-            <div style="font-size: 24px;">🏆 得分：<span id="score">0</span> / <span id="total">7</span></div>
+            <div>得分：<span id="score">0</span> / <span id="total">7</span></div>
             <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-            <div id="gameStatus" style="font-size: 14px; opacity: 0.8;">準備開始遊戲...</div>
         </div>
-        
+
         <footer>
-            <p>樂器配對遊戲 | 適合音樂啟蒙教育</p>
-            <p>三角、雙擊木、銅鈸、砂槌、馬鈴、小鼓、搖鼓</p>
+            <p>樂器：三角、雙擊木、銅鈸、砂槌、馬鈴、小鼓、搖鼓</p>
         </footer>
     </div>
 
-    
-
-[Image of X]
- (這裡會根據您的檔案顯示樂器圖片)
-
     <script>
         const instruments = [
-            { id: 'triangle', name: '三角', audioFile: 'triangle.mp3', imageFile: 'triangle.jpg', description: '三角鐵是金屬製成的，聲音亮晶晶的，像星星一樣！' },
-            { id: 'claves', name: '雙擊木', audioFile: 'claves.mp3', imageFile: 'claves.jpg', description: '兩根木棒敲在一起，發出咚咚的乾脆聲音。' },
-            { id: 'cymbal', name: '銅鈸', audioFile: 'cymbal.mp3', imageFile: 'cymbal.jpg', description: '兩片大大的銅盤撞在一起，聲音非常響亮！' },
-            { id: 'maracas', name: '砂槌', audioFile: 'maracas.mp3', imageFile: 'maracas.jpg', description: '裡面裝了小沙子，搖一搖就會發出沙沙聲。' },
-            { id: 'sleigh_bells', name: '馬鈴', audioFile: 'sleigh_bells.mp3', imageFile: 'sleigh_bells.jpg', description: '叮叮噹、叮叮噹，就像聖誕老人來的聲音！' },
-            { id: 'snare_drum', name: '小鼓', audioFile: 'snare_drum.mp3', imageFile: 'snare_drum.jpg', description: '嗒嗒嗒嗒！很有精神的鼓聲。' },
-            { id: 'tam', name: '搖鼓', audioFile: 'tam.mp3', imageFile: 'tam.jpg', description: '旁邊有許多小鈴片，敲一下搖一下，非常熱鬧。' }
+            { id: 'triangle', name: '三角', audioFile: 'triangle.mp3', imageFile: 'triangle.jpg', description: '金屬清脆的聲音。' },
+            { id: 'claves', name: '雙擊木', audioFile: 'claves.mp3', imageFile: 'claves.jpg', description: '木頭清脆的敲擊聲。' },
+            { id: 'cymbal', name: '銅鈸', audioFile: 'cymbal.mp3', imageFile: 'cymbal.jpg', description: '響亮震動的聲音。' },
+            { id: 'maracas', name: '砂槌', audioFile: 'maracas.mp3', imageFile: 'maracas.jpg', description: '沙沙的搖晃聲。' },
+            { id: 'sleigh_bells', name: '馬鈴', audioFile: 'sleigh_bells.mp3', imageFile: 'sleigh_bells.jpg', description: '叮鈴鈴的鈴鐺聲。' },
+            { id: 'snare_drum', name: '小鼓', audioFile: 'snare_drum.mp3', imageFile: 'snare_drum.jpg', description: '嗒嗒嗒的鼓點聲。' },
+            { id: 'tam', name: '搖鼓', audioFile: 'tam.mp3', imageFile: 'tam.jpg', description: '帶鈴片的清脆聲。' }
         ];
 
         let gameState = {
             currentSound: null,
-            selectedImage: null,
             score: 0,
-            totalQuestions: instruments.length,
             answeredQuestions: 0,
-            gameInProgress: true,
-            availableInstruments: [...instruments],
-            usedSounds: []
+            usedSounds: [],
+            isRoundLocked: false
         };
 
-        const imagesGrid = document.getElementById('imagesGrid');
-        const playCurrentBtn = document.getElementById('playCurrentBtn');
-        const playRandomBtn = document.getElementById('playRandomBtn');
-        const otherButtons = document.getElementById('otherButtons');
-        const checkBtn = document.getElementById('checkBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        const resultSection = document.getElementById('resultSection');
-        const scoreElement = document.getElementById('score');
-        const progressFill = document.getElementById('progressFill');
-        const gameStatus = document.getElementById('gameStatus');
-
         let currentAudio = null;
+
+        function startGame() {
+            document.getElementById('startOverlay').style.display = 'none';
+            initGame();
+        }
 
         function initGame() {
             gameState = {
                 currentSound: null,
-                selectedImage: null,
                 score: 0,
-                totalQuestions: instruments.length,
                 answeredQuestions: 0,
-                gameInProgress: true,
-                availableInstruments: [...instruments],
-                usedSounds: []
+                usedSounds: [],
+                isRoundLocked: false
             };
-            updateScore();
-            updateProgress();
-            resultSection.classList.remove('show');
-            checkBtn.disabled = true;
-            nextBtn.disabled = true;
+            updateUI();
             createImageGrid();
             createOtherButtons();
-            setTimeout(selectRandomSound, 1000);
+            selectNextQuestion();
         }
 
         function createImageGrid() {
-            imagesGrid.innerHTML = '';
-            const shuffled = [...instruments].sort(() => Math.random() - 0.5);
-            shuffled.forEach(inst => {
+            const grid = document.getElementById('imagesGrid');
+            grid.innerHTML = '';
+            [...instruments].sort(() => Math.random() - 0.5).forEach(inst => {
                 const container = document.createElement('div');
                 container.className = 'image-container';
+                container.id = 'container-' + inst.id;
+                container.onclick = () => handleSelection(inst.id);
+                
                 const img = document.createElement('img');
                 img.className = 'instrument-image';
                 img.src = inst.imageFile;
-                img.dataset.id = inst.id;
-                img.onclick = () => selectImage(inst.id);
                 img.onerror = () => { img.src = `https://via.placeholder.com/100?text=${inst.name}`; };
                 
-                const nameLabel = document.createElement('div');
-                nameLabel.className = 'image-name';
-                nameLabel.textContent = inst.name;
+                const label = document.createElement('div');
+                label.className = 'image-name';
+                label.textContent = inst.name;
                 
                 container.appendChild(img);
-                container.appendChild(nameLabel);
-                imagesGrid.appendChild(container);
+                container.appendChild(label);
+                grid.appendChild(container);
             });
         }
 
         function createOtherButtons() {
-            otherButtons.innerHTML = '';
+            const container = document.getElementById('otherButtons');
+            container.innerHTML = '';
             instruments.forEach(inst => {
                 const btn = document.createElement('button');
                 btn.className = 'other-btn';
                 btn.textContent = inst.name;
-                btn.onclick = () => playSound(inst.id, false);
-                otherButtons.appendChild(btn);
+                btn.onclick = () => playSound(inst.audioFile);
+                container.appendChild(btn);
             });
         }
 
-        function selectRandomSound() {
-            if (!gameState.gameInProgress) return;
-            const remaining = gameState.availableInstruments.filter(i => !gameState.usedSounds.includes(i.id));
-            if (remaining.length === 0) return;
+        function selectNextQuestion() {
+            const remaining = instruments.filter(i => !gameState.usedSounds.includes(i.id));
+            if (remaining.length === 0) return endGame();
             
             const selected = remaining[Math.floor(Math.random() * remaining.length)];
-            gameState.currentSound = selected.id;
+            gameState.currentSound = selected;
             gameState.usedSounds.push(selected.id);
+            gameState.isRoundLocked = false;
+            
             document.getElementById('currentSoundNumber').textContent = `第 ${gameState.usedSounds.length} 題`;
-            gameStatus.textContent = '請聽聲音，猜猜它是誰？';
-            playCurrentSound();
+            document.getElementById('resultSection').classList.remove('show');
+            document.getElementById('nextBtn').disabled = true;
+            document.querySelectorAll('.image-container').forEach(el => el.className = 'image-container');
+            
+            playSound(selected.audioFile, true);
         }
 
-        function playSound(id, isCurrent = true) {
+        function playSound(file, isMain = false) {
             if (currentAudio) { currentAudio.pause(); currentAudio.currentTime = 0; }
-            const inst = instruments.find(i => i.id === id);
-            currentAudio = new Audio(inst.audioFile);
-            
-            if (isCurrent) {
-                playCurrentBtn.classList.add('playing');
-                playCurrentBtn.textContent = '⏸️ 正在播放...';
+            currentAudio = new Audio(file);
+            if (isMain) {
+                const btn = document.getElementById('playCurrentBtn');
+                btn.classList.add('playing');
+                btn.textContent = '⏸️ 正在播放...';
+                currentAudio.onended = () => {
+                    btn.classList.remove('playing');
+                    btn.textContent = '▶️ 播放聲音';
+                };
             }
+            currentAudio.play().catch(e => console.log("播放被攔截或檔案遺失"));
+        }
+
+        function handleSelection(selectedId) {
+            if (gameState.isRoundLocked) return;
             
-            currentAudio.onended = () => {
-                playCurrentBtn.classList.remove('playing');
-                playCurrentBtn.textContent = '▶️ 播放當前聲音';
-                if (isCurrent && gameState.selectedImage) checkBtn.disabled = false;
-            };
-            currentAudio.play().catch(() => {
-                document.getElementById('audioError').style.display = 'block';
-                playCurrentBtn.textContent = '❌ 播放失敗';
-            });
-        }
-
-        function playCurrentSound() { playSound(gameState.currentSound, true); }
-
-        function selectImage(id) {
-            if (!gameState.currentSound) return;
-            document.querySelectorAll('.instrument-image').forEach(img => img.classList.remove('selected'));
-            const target = document.querySelector(`.instrument-image[data-id="${id}"]`);
-            target.classList.add('selected');
-            gameState.selectedImage = id;
-            checkBtn.disabled = false;
-        }
-
-        function checkAnswer() {
-            const isCorrect = gameState.currentSound === gameState.selectedImage;
-            const inst = instruments.find(i => i.id === gameState.currentSound);
+            gameState.isRoundLocked = true;
+            const isCorrect = selectedId === gameState.currentSound.id;
+            const selectedContainer = document.getElementById('container-' + selectedId);
+            const correctContainer = document.getElementById('container-' + gameState.currentSound.id);
             
             if (isCorrect) {
                 gameState.score++;
-                gameState.answeredQuestions++;
-                resultSection.className = 'result-section result-correct show';
-                document.getElementById('resultIcon').textContent = '🎉';
-                document.getElementById('resultTitle').textContent = '答對了！你好棒！';
+                selectedContainer.classList.add('correct');
             } else {
-                resultSection.className = 'result-section result-incorrect show';
-                document.getElementById('resultIcon').textContent = '💡';
-                document.getElementById('resultTitle').textContent = '差一點點就對了';
+                selectedContainer.classList.add('wrong');
+                correctContainer.classList.add('correct'); // 顯示正確答案
             }
             
-            document.getElementById('resultText').textContent = isCorrect ? `你成功認出了 ${inst.name}！` : `這是 ${inst.name} 的聲音哦！`;
-            document.getElementById('instrumentInfo').innerHTML = `<b>關於 ${inst.name}：</b><br>${inst.description}`;
-            
-            updateScore();
-            updateProgress();
-            checkBtn.disabled = true;
-            nextBtn.disabled = (gameState.usedSounds.length === gameState.totalQuestions);
-            
-            if (gameState.usedSounds.length === gameState.totalQuestions) endGame();
+            showResult(isCorrect);
         }
 
-        function updateScore() { scoreElement.textContent = gameState.score; }
-        function updateProgress() { progressFill.style.width = `${(gameState.usedSounds.length / gameState.totalQuestions) * 100}%`; }
+        function showResult(isCorrect) {
+            const section = document.getElementById('resultSection');
+            section.className = `result-section show ${isCorrect ? 'result-correct' : 'result-incorrect'}`;
+            document.getElementById('resultIcon').textContent = isCorrect ? '🎉' : '💡';
+            document.getElementById('resultTitle').textContent = isCorrect ? '太棒了！答對囉！' : '哎呀，再接再厲！';
+            document.getElementById('resultText').textContent = isCorrect ? `你成功認出了 ${gameState.currentSound.name}！` : `正確答案是 ${gameState.currentSound.name}。`;
+            document.getElementById('instrumentInfo').textContent = gameState.currentSound.description;
+            
+            gameState.answeredQuestions++;
+            updateUI();
+            document.getElementById('nextBtn').disabled = false;
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = gameState.score;
+            document.getElementById('total').textContent = instruments.length;
+            document.getElementById('progressFill').style.width = `${(gameState.usedSounds.length / instruments.length) * 100}%`;
+        }
 
         function endGame() {
-            setTimeout(() => {
-                alert(`太棒了！你完成了所有挑戰！\n最終得分：${gameState.score} / ${gameState.totalQuestions}`);
-                gameStatus.textContent = '遊戲結束！點擊重新開始再來一局吧！';
-            }, 1000);
+            alert(`恭喜！挑戰完成！\n最終得分：${gameState.score} / ${instruments.length}`);
+            initGame();
         }
 
-        playCurrentBtn.onclick = playCurrentSound;
-        playRandomBtn.onclick = () => playSound(instruments[Math.floor(Math.random()*7)].id, false);
-        checkBtn.onclick = checkAnswer;
-        resetBtn.onclick = initGame;
-        nextBtn.onclick = () => {
-            resultSection.classList.remove('show');
-            nextBtn.disabled = true;
-            selectRandomSound();
-        };
-
-        window.onload = initGame;
-
-        // 測試功能
-        function testAllAudios() { alert("開始音頻測試..."); instruments.forEach(i => new Audio(i.audioFile).load()); }
-        function testAllImages() { alert("開始圖片測試..."); instruments.forEach(i => { let img = new Image(); img.src = i.imageFile; }); }
-        function showFileList() { alert("需要的檔案：\n" + instruments.map(i => i.audioFile + ", " + i.imageFile).join("\n")); }
+        document.getElementById('playCurrentBtn').onclick = () => playSound(gameState.currentSound.audioFile, true);
+        document.getElementById('nextBtn').onclick = selectNextQuestion;
+        document.getElementById('resetBtn').onclick = initGame;
     </script>
 </body>
 </html>
